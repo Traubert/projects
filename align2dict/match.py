@@ -23,16 +23,22 @@ target_file = open(args.targetfile)
 spaced_dict = {}
 freqdict = {}
 
+def token_strip(token):
+    return token.strip(',.?! -"\'’')
+
 def handle(aligned_line):
     aligned_output = []
-    for source_word, target_sequence in aligned_line:
+    for i, (source_word, target_sequence) in enumerate(aligned_line):
         sorted_target_sequence = list(map(lambda x: x[1],
                                           sorted(target_sequence, key = lambda x: x[0])))
-        target_string = ''.join(sorted_target_sequence).replace('▁', ' ').strip(',.?! -"\'’')
+        target_string = token_strip(''.join(sorted_target_sequence).replace('▁', ' '))
+        if i == 0 and target_string.replace(' ', '_') != source_word.replace('▁', ''):
+            target_string = target_string.lower()
+            source_word = source_word.lower()
         if target_string == '':
             logging.debug(f"SKIPPED empty target word for {source_word.replace('▁', '')}")
         if args.align:
-            aligned_output.append(source_word.replace('▁', '') + '▁' + target_string.replace(' ', '_'))
+            aligned_output.append(token_strip(source_word.replace('▁', '')) + '▁' + target_string.replace(' ', '_'))
         else:
             if source_word not in spaced_dict:
                 spaced_dict[source_word] = {target_string: 1}
